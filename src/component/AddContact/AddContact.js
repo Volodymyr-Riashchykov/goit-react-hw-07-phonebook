@@ -1,15 +1,25 @@
-import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useState,useEffect } from "react";
 import AddContactInput from "../AddContactInput/AddContactInput";
 import style from './AddContact.module.css'
-import {addContact} from "../../Redux/phonebook/phonebook-actions";
+import { useGetCreateContactMutation,useGetFetchPhonebookQuery } from "../../Redux/phonebook/phonebook-slice";
+import Spinner from '../Spinner/Spinner';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 export default function AddContact() {
     const [name, setName] = useState("");
     const [number, setNumber] = useState("");
     
-    const dispatch = useDispatch();
-
+    const [handleAddContact, {isLoading, isError:isErr, error:err}] = useGetCreateContactMutation();
+    const { data,isSuccess } = useGetFetchPhonebookQuery();
+    
+    useEffect(() => {
+        if (isErr) {
+        toast.error(`error ${err.status} (${err.data})`);
+    }
+    },[isErr,err])
+    
     const hahdleChange = e => {
         if (e.currentTarget.name === "name") setName(e.currentTarget.value);
         if (e.currentTarget.name === "number") setNumber(e.currentTarget.value);
@@ -17,8 +27,12 @@ export default function AddContact() {
 
     const handleSubmit = e => {
         e.preventDefault();
-        // handleAddContact(name, number);
-        dispatch(addContact(name,number))
+        if (data.find((contact) => contact.name.toLowerCase() === name.toLowerCase()))
+        {
+           toast.info(`"${name}" is already in contacts.`)
+        }
+        else handleAddContact({  name,phone:number });
+        
         resetState();
     };
 
@@ -47,7 +61,8 @@ export default function AddContact() {
             />
                 
             
-            <button type="submit" className={style.btn}>Add contact</button>
+            <button type="submit" className={style.btn} disabled={!isSuccess}>
+                {isLoading ? <Spinner height={10} width={70}/> : 'Add contact'}</button>
         </form>
     )
 }

@@ -1,39 +1,43 @@
 
-import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
-import logger from "redux-logger";
-import phonebookReducer from "./phonebook/phonebook-reducer";
-import {
-    persistStore,
-    persistReducer,
-    FLUSH,
-    REHYDRATE,
-    PAUSE,
-    PERSIST,
-    PURGE,
-    REGISTER,
-} from "redux-persist";
-import storage from "redux-persist/lib/storage";
+import { configureStore } from "@reduxjs/toolkit";
+import { setupListeners } from "@reduxjs/toolkit/dist/query";
+// import logger from "redux-logger";
+// import phonebookReducer from "./phonebook/phonebook-reducer";
+// import {
+//     // persistStore,
+//     // persistReducer,
+//     // FLUSH,
+//     // REHYDRATE,
+//     // PAUSE,
+//     // PERSIST,
+//     // PURGE,
+//     // REGISTER,
+// } from "redux-persist";
+// import storage from "redux-persist/lib/storage";
+import { phonebookApi } from "./phonebook/phonebook-slice";
 
-const persistConfig = {
-    key: "contacts",
-    storage,
-    blacklist: ["filter"],
-}
+// const persistConfig = {
+//     key: "contacts",
+//     storage,
+//     blacklist: ["filter"],
+// }
 
-const middleware = [...getDefaultMiddleware({
-    serializableCheck: {
-        ignoredActions:[FLUSH,REHYDRATE,PAUSE,PERSIST,PURGE,REGISTER]
-    }
-}), logger]
+// const middleware = [...getDefaultMiddleware({
+//     serializableCheck: {
+//         ignoredActions:[FLUSH,REHYDRATE,PAUSE,PERSIST,PURGE,REGISTER]
+//     }
+// }), logger]
 
-const store = configureStore({
+export const store = configureStore({
   reducer: {
-    phonebook: persistReducer(persistConfig, phonebookReducer),
+    // phonebook: persistReducer(persistConfig, phonebookReducer),
+      [phonebookApi.reducerPath]: phonebookApi.reducer,
 },
-    middleware,
-  devTools: process.env.NODE_ENV === "development",
+    middleware: getDefaultMiddleware => [...getDefaultMiddleware(),phonebookApi.middleware,],
+//   devTools: process.env.NODE_ENV === "development",
 });
 
-const persistor = persistStore(store);
+// const persistor = persistStore(store);
 
-export { store,persistor };
+// export { store,persistor };
+setupListeners(store.dispatch);

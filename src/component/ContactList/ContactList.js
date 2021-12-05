@@ -1,24 +1,46 @@
-// import PropTypes from "prop-types";
-import { useDispatch, useSelector } from "react-redux";
-// import  deleteContact  from "../../Redux/phonebook/phonebook-actions";
+
 import ContactItem from "../ContactItem/ContactItem"
 import style from "./ContactList.module.css"
-import { deleteContact } from "../../Redux/phonebook/phonebook-actions";
-import { getVisible } from "../../Redux/phonebook/phonebook-selectors";
+import Filtr from "../Filter/Filter";
+import { useState } from "react";
+import { useGetFetchPhonebookQuery } from '../../Redux/phonebook/phonebook-slice';
+import { toast } from "react-toastify";
 
 export default function ContactList() {
-  const contacts = useSelector(getVisible)
-  const dispatch = useDispatch();
+  const [filter, setFilter] = useState('')
+  
+  const { data, isError, error } = useGetFetchPhonebookQuery();
+
+  if (isError) {
+        toast.error(`error ${error.status} (${error.data})`);
+  }
+  
+  const changeFilter = (e) => {
+    setFilter(e);
+  };
+  
+  const contactsVisible = () => {
+    return data.filter((contact) =>
+      contact.name.toLowerCase().includes(filter.toLowerCase())
+    );
+  };
   
   return (
+  <>
+    {(data && data.length > 0) ? (
       <>
-        <ul className={style.list}>
-          {contacts.map(contact => {
-            return (
-                <ContactItem key={contact.id} contact={contact} delet={(id)=>dispatch(deleteContact(id))}/>
-            )
-          })}
-      </ul>
+        <Filtr value={filter} onChange={changeFilter} />
+
+          <ul className={style.list}>
+            {contactsVisible().map(contact => {
+              return (<ContactItem key={contact.id} contact={contact}/>)
+                }
+              )
+            }
+          </ul>
       </>
-    )
+    ):(<h4>Your phonebook is empty</h4>)
+}
+  </>  
+  )
 }
